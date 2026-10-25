@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" fill="none" width="100%" height="100%">
+  <defs>
+    <!-- Cyan Upper-Left Facet Gradient -->
+    <linearGradient id="patchoraCyanFacet" x1="20%" y1="10%" x2="90%" y2="90%">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="45%" stop-color="#00C8F0"/>
+      <stop offset="100%" stop-color="#0088CC"/>
+    </linearGradient>
+
+    <!-- Deep Navy Lower-Right Facet Gradient -->
+    <linearGradient id="patchoraNavyFacet" x1="10%" y1="10%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#071A3D"/>
+      <stop offset="50%" stop-color="#051433"/>
+      <stop offset="100%" stop-color="#020B1E"/>
+    </linearGradient>
+
+    <!-- Wrench Subtle Shadow Filter -->
+    <filter id="wrenchShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#02091A" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Complete Shield Silhouette -->
+  <!-- Left / Upper Cyan Half -->
+  <path d="M 125,24 
+           C 95,30 55,36 32,45 
+           C 30,85 32,130 55,168 
+           C 74,198 100,222 125,236 
+           L 125,24 Z" 
+        fill="url(#patchoraCyanFacet)"/>
+
+  <!-- Right / Lower Deep Navy Half -->
+  <path d="M 125,24 
+           C 155,30 195,36 218,45 
+           C 220,85 218,130 195,168 
+           C 176,198 150,222 125,236 
+           L 125,24 Z" 
+        fill="url(#patchoraNavyFacet)"/>
+
+  <!-- Top Bevel Highlight Line -->
+  <path d="M 32,45 C 70,33 110,25 125,24 C 140,25 180,33 218,45" 
+        stroke="#66E5FF" stroke-width="1.5" stroke-linecap="round" opacity="0.4" fill="none"/>
+
+  <!-- Circuit Traces on Cyan Field -->
+  <g stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Top Trace -->
+    <path d="M 72,76 L 96,96"/>
+    <!-- Middle Trace -->
+    <path d="M 52,112 L 78,112 L 100,132"/>
+    <!-- Bottom Trace -->
+    <path d="M 64,152 L 86,152 L 98,140"/>
+  </g>
+
+  <!-- Circuit Nodes (Circular Pads) -->
+  <!-- Top Node -->
+  <circle cx="72" cy="76" r="6.5" fill="#00C8F0" stroke="#FFFFFF" stroke-width="4"/>
+  <!-- Middle Node -->
+  <circle cx="52" cy="112" r="6.5" fill="#00C8F0" stroke="#FFFFFF" stroke-width="4"/>
+  <!-- Bottom Node -->
+  <circle cx="64" cy="152" r="6.5" fill="#00C8F0" stroke="#FFFFFF" stroke-width="4"/>
+
+  <!-- Central Wrench / Repair Tool (Angled 45 degrees) -->
+  <g filter="url(#wrenchShadow)">
+    <!-- Wrench Drop/Outline Underlay for High Contrast -->
+    <path d="M 72,192 
+             C 63,183 63,169 72,160 
+             L 120,112 
+             L 134,126 
+             L 86,174 
+             C 77,183 81,197 72,192 Z" 
+          fill="none"/>
+
+    <!-- Main Wrench Body (White) -->
+    <!-- Handle + Jaw constructed along 45 degree axis -->
+    <g transform="translate(125, 125) rotate(-45) translate(-125, -125)">
+      <!-- In rotated coordinate system: Wrench points straight UP (Handle at bottom, Jaw at top) -->
+      <!-- Center line is at X=125, Handle bottom at Y=205, Jaw top at Y=50 -->
+      <path d="
+        M 112,185 
+        C 106,175 106,160 114,150 
+        L 115,100 
+        C 104,95 98,82 101,68 
+        C 103,58 111,50 120,48 
+        L 120,70 
+        C 120,73 122,75 125,75 
+        C 128,75 130,73 130,70 
+        L 130,48 
+        C 139,50 147,58 149,68 
+        C 152,82 146,95 135,100 
+        L 136,150 
+        C 144,160 144,175 138,185 
+        C 131,195 119,195 112,185 Z" 
+        fill="#FFFFFF"/>
+
+      <!-- Circular Cutout in Wrench Handle Base -->
+      <circle cx="125" cy="176" r="7" fill="#051433"/>
+    </g>
+  </g>
+</svg>

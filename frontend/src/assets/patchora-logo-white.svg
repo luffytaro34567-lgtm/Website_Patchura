@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none" width="100%" height="100%">
+  <!-- Monochrome Pure White Variant -->
+  <g transform="translate(4, 2) scale(0.24)">
+    <!-- Shield Outline / Fill -->
+    <path d="M 125,24 C 95,30 55,36 32,45 C 30,85 32,130 55,168 C 74,198 100,222 125,236 C 150,222 176,198 195,168 C 218,130 220,85 218,45 C 195,36 155,30 125,24 Z" 
+          stroke="#FFFFFF" stroke-width="8" fill="none"/>
+
+    <!-- Circuit Traces -->
+    <path d="M 72,76 L 96,96" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 52,112 L 78,112 L 100,132" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 64,152 L 86,152 L 98,140" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="72" cy="76" r="7" fill="#FFFFFF"/>
+    <circle cx="52" cy="112" r="7" fill="#FFFFFF"/>
+    <circle cx="64" cy="152" r="7" fill="#FFFFFF"/>
+
+    <!-- Wrench Tool -->
+    <g transform="translate(125, 125) rotate(-45) translate(-125, -125)">
+      <path d="
+        M 112,185 C 106,175 106,160 114,150 L 115,100 C 104,95 98,82 101,68 
+        C 103,58 111,50 120,48 L 120,70 C 120,73 122,75 125,75 C 128,75 130,73 130,70 
+        L 130,48 C 139,50 147,58 149,68 C 152,82 146,95 135,100 L 136,150 
+        C 144,160 144,175 138,185 C 131,195 119,195 112,185 Z" 
+        fill="#FFFFFF"/>
+      <circle cx="125" cy="176" r="7" fill="#000000"/>
+    </g>
+  </g>
+
+  <!-- Wordmark in Pure White -->
+  <g transform="translate(74, 43)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Inter', sans-serif" 
+          font-weight="900" 
+          font-size="31" 
+          letter-spacing="0.8px" 
+          fill="#FFFFFF">
+      PATCHORA
+    </text>
+  </g>
+</svg>
