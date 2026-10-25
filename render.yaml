@@ -1,0 +1,57 @@
+# ==============================================================================
+# PATCHORA — Render Blueprint Specification
+# ==============================================================================
+services:
+  # ---- Backend Web Service (FastAPI) ----
+  - type: web
+    name: patchura-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_NAME
+        value: PATCHORA
+      - key: APP_VERSION
+        value: 0.1.0
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CORS_ORIGINS
+        value: https://patchura-frontend.onrender.com,http://localhost:5173,http://localhost:3000
+      - key: USE_SQLITE
+        value: "true"
+      - key: SQLITE_PATH
+        value: ./patchora.db
+      - key: PAYMENT_PROVIDER
+        value: sandbox
+      - key: AI_PROVIDER
+        value: deterministic_rules
+      - key: OUTREACH_PROVIDER
+        value: sandbox_logger
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ---- Frontend Static Site (React + Vite + Tailwind) ----
+  - type: web
+    name: patchura-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    plan: free
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://patchura-backend.onrender.com
+      - key: VITE_APP_NAME
+        value: PATCHORA

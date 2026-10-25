@@ -144,3 +144,7 @@ dist
 **/.venv/
 **/__pycache__/
 **/.pytest_cache/
+
+*.db
+*.sqlite
+*.sqlite3

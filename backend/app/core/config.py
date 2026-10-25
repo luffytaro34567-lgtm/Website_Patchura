@@ -66,12 +66,43 @@ class Settings(BaseSettings):
     OUTREACH_COMPLIANCE_ADDRESS: str = "PATCHORA Inc., 100 Cyber Defense Way, Suite 400, San Francisco, CA 94105"
     OUTREACH_OPT_OUT_BASE_URL: str = "http://localhost:5173/opt-out"
 
-    # CORS — stored as a raw comma-separated string so it loads from env cleanly
-    CORS_ORIGINS: str = "https://patchura-frontend.onrender.com"
+    # CORS — supports comma-separated strings, JSON arrays, quotes, and trailing slashes
+    CORS_ORIGINS: str = "https://patchura-frontend.onrender.com,http://localhost:5173,http://localhost:3000"
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        raw = (self.CORS_ORIGINS or "").strip()
+        parsed_items: List[str] = []
+
+        if raw.startswith("[") and raw.endswith("]"):
+            try:
+                import json
+                items = json.loads(raw)
+                if isinstance(items, list):
+                    parsed_items = [str(x) for x in items]
+            except Exception:
+                pass
+
+        if not parsed_items:
+            parsed_items = raw.split(",")
+
+        cleaned_origins: List[str] = []
+        for item in parsed_items:
+            cleaned = item.strip().strip("[]'\"`").rstrip("/")
+            if cleaned and cleaned not in cleaned_origins:
+                cleaned_origins.append(cleaned)
+
+        default_origins = [
+            "https://patchura-frontend.onrender.com",
+            "http://localhost:5173",
+            "http://localhost:3000",
+        ]
+        for d in default_origins:
+            norm_d = d.rstrip("/")
+            if norm_d not in cleaned_origins and "*" not in cleaned_origins:
+                cleaned_origins.append(norm_d)
+
+        return cleaned_origins
 
     @property
     def effective_database_url(self) -> str:
