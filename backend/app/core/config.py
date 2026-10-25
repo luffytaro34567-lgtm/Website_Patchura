@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     OUTREACH_OPT_OUT_BASE_URL: str = "http://localhost:5173/opt-out"
 
     # CORS — stored as a raw comma-separated string so it loads from env cleanly
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "https://patchura-frontend.onrender.com"
 
     @property
     def cors_origins_list(self) -> List[str]:
