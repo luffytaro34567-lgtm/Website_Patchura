@@ -26,7 +26,7 @@
    - Protected API routes (`/api/auth/me`, `/api/admin/users`, `/api/websites`, `/api/scans`) enforce authentication with HTTP `401 Unauthorized`.
    - Direct `POST /api/auth/login` evaluates credentials and returns HTTP `401 Unauthorized` with safe, uniform error messaging.
 3. **Pending Actions for Full Live Certification:**
-   - The 5 local repair commits (`5dfaaaf`, `1514314`, `eaf3852`, `95415f3`, `62b2707`) must be pushed to GitHub (`git push origin main`) to deploy the CORS fix, client timeout adjustment, and error serialization to Render.
+   - The 7 local repair commits on `main` must be pushed to GitHub (`git push origin main`) to deploy the CORS fix, client timeout adjustment, accessible form labels, and error serialization to Render.
    - An authorized production test user account must be used to perform browser login verification on the live domain after deployment.
 
 ---
@@ -110,7 +110,7 @@ src/tests/Billing.test.tsx ...                                 [  3/3  PASSED ]
 
 ### 5.1 Remaining Error on Live Server
 - **Symptom:** Live preflight `OPTIONS /api/auth/login` returns `400 Disallowed CORS origin`.
-- **Cause:** The live instance on Render is running the older commit from GitHub. It has not received the 5 commits currently on local `main`.
+- **Cause:** The live instance on Render is running the older commit from GitHub. It has not received the commits currently on local `main`.
 
 ### 5.2 Single Required Action to Resolve
 Push the local commits to GitHub:
