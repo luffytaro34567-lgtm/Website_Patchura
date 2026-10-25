@@ -134,3 +134,13 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Environment files and secrets
+.env.*
+!.env.example
+
+# Nested dependencies and Python environments
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
