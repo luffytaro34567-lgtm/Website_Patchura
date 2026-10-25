@@ -25,10 +25,12 @@ logger = structlog.get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown lifecycle."""
+    settings.validate_cors_settings()
     logger.info(
         "Starting PATCHORA",
         version=settings.APP_VERSION,
         env=settings.APP_ENV,
+        cors_origins=settings.cors_origins_list,
     )
     await init_db()
     yield
@@ -50,10 +52,12 @@ def create_application() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
-        allow_origin_regex=r"^https://.*\.onrender\.com$",
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origin_regex=settings.cors_origin_regex,
+        allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+        allow_methods=settings.CORS_ALLOW_METHODS,
+        allow_headers=settings.CORS_ALLOW_HEADERS,
+        expose_headers=settings.CORS_EXPOSE_HEADERS,
+        max_age=settings.CORS_MAX_AGE,
     )
 
     # ── Security Headers & Request Correlation Middleware ─────────────────────

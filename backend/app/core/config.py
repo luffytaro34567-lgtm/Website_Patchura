@@ -66,43 +66,104 @@ class Settings(BaseSettings):
     OUTREACH_COMPLIANCE_ADDRESS: str = "PATCHORA Inc., 100 Cyber Defense Way, Suite 400, San Francisco, CA 94105"
     OUTREACH_OPT_OUT_BASE_URL: str = "http://localhost:5173/opt-out"
 
-    # CORS — supports comma-separated strings, JSON arrays, quotes, and trailing slashes
-    CORS_ORIGINS: str = "https://patchura-frontend.onrender.com,http://localhost:5173,http://localhost:3000"
+    # CORS Configuration
+    CORS_ORIGINS: Optional[str] = "https://patchura-frontend.onrender.com,http://localhost:5173,http://localhost:3000"
+    BACKEND_CORS_ORIGINS: Optional[str] = None
+    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_ALLOW_HEADERS: List[str] = [
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Request-ID",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+    ]
+    CORS_EXPOSE_HEADERS: List[str] = ["X-Request-ID", "X-Process-Time-Ms"]
+    CORS_MAX_AGE: int = 600
+
+    @property
+    def cors_origin_regex(self) -> Optional[str]:
+        """Allow any Render HTTPS domain dynamically for preview and staging branches."""
+        return r"^https://.*\.onrender\.com$"
 
     @property
     def cors_origins_list(self) -> List[str]:
-        raw = (self.CORS_ORIGINS or "").strip()
+        # Merge both CORS_ORIGINS and BACKEND_CORS_ORIGINS if set
+        raw_values: List[str] = []
+        if self.CORS_ORIGINS:
+            raw_values.append(self.CORS_ORIGINS)
+        if self.BACKEND_CORS_ORIGINS:
+            raw_values.append(self.BACKEND_CORS_ORIGINS)
+
         parsed_items: List[str] = []
+        for raw in raw_values:
+            text = (raw or "").strip()
+            if not text:
+                continue
 
-        if raw.startswith("[") and raw.endswith("]"):
-            try:
-                import json
-                items = json.loads(raw)
-                if isinstance(items, list):
-                    parsed_items = [str(x) for x in items]
-            except Exception:
-                pass
+            # Support JSON array format e.g. ["https://..."]
+            if text.startswith("[") and text.endswith("]"):
+                try:
+                    import json
+                    items = json.loads(text)
+                    if isinstance(items, list):
+                        parsed_items.extend(str(x) for x in items)
+                        continue
+                except Exception:
+                    pass
 
-        if not parsed_items:
-            parsed_items = raw.split(",")
+            # Comma-separated list
+            parsed_items.extend(text.split(","))
 
         cleaned_origins: List[str] = []
         for item in parsed_items:
+            # Strip whitespace, brackets, single/double quotes, and trailing slashes
             cleaned = item.strip().strip("[]'\"`").rstrip("/")
             if cleaned and cleaned not in cleaned_origins:
                 cleaned_origins.append(cleaned)
 
-        default_origins = [
-            "https://patchura-frontend.onrender.com",
-            "http://localhost:5173",
-            "http://localhost:3000",
-        ]
-        for d in default_origins:
-            norm_d = d.rstrip("/")
-            if norm_d not in cleaned_origins and "*" not in cleaned_origins:
-                cleaned_origins.append(norm_d)
+        # Baseline origin for production
+        prod_origins = ["https://patchura-frontend.onrender.com"]
+        for po in prod_origins:
+            norm_po = po.rstrip("/")
+            if norm_po not in cleaned_origins and "*" not in cleaned_origins:
+                cleaned_origins.append(norm_po)
+
+        # Local development origins are only added if not running in production
+        if self.APP_ENV != "production":
+            dev_origins = [
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+            ]
+            for d in dev_origins:
+                norm_d = d.rstrip("/")
+                if norm_d not in cleaned_origins and "*" not in cleaned_origins:
+                    cleaned_origins.append(norm_d)
 
         return cleaned_origins
+
+    def validate_cors_settings(self) -> None:
+        """Validate CORS configuration at startup and raise clear, descriptive errors."""
+        origins = self.cors_origins_list
+        if not origins:
+            raise ValueError("CORS configuration error: No allowed origins defined.")
+
+        if self.APP_ENV == "production" and "*" in origins and self.CORS_ALLOW_CREDENTIALS:
+            raise ValueError(
+                "CORS security violation: Wildcard origin '*' cannot be paired with "
+                "allow_credentials=True in production. Whitelist explicit trusted origins."
+            )
+
+        for origin in origins:
+            if origin != "*" and not (origin.startswith("http://") or origin.startswith("https://")):
+                raise ValueError(
+                    f"CORS configuration error: Origin '{origin}' is invalid. "
+                    "Allowed origins must start with 'http://' or 'https://'."
+                )
 
     @property
     def effective_database_url(self) -> str:
