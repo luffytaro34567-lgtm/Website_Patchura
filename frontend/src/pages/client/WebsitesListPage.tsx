@@ -288,10 +288,11 @@ export function WebsitesListPage() {
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="target-name" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Friendly Target Name
                 </label>
                 <input
+                  id="target-name"
                   type="text"
                   required
                   placeholder="e.g. Production Web Portal"
@@ -302,10 +303,11 @@ export function WebsitesListPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="target-url" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Target URL
                 </label>
                 <input
+                  id="target-url"
                   type="text"
                   required
                   placeholder="https://example.com"

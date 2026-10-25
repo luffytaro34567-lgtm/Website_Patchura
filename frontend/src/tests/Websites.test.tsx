@@ -36,22 +36,22 @@ describe('WebsitesListPage (Phase 4)', () => {
   it('renders target websites header and register target button', async () => {
     renderWithProviders(<WebsitesListPage />)
     
-    expect(screen.getByText('Target Websites')).toBeInTheDocument()
-    expect(screen.getByText(/Register, verify ownership, and explicitly authorize vulnerability scans/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Register Target/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Target Websites & Scope Management/i })).toBeInTheDocument()
+    expect(screen.getByText(/Register, verify ownership, and explicitly authorize/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Add Target Website/i })).toBeInTheDocument()
   })
 
   it('opens registration modal with SSRF policy notice when button is clicked', async () => {
     renderWithProviders(<WebsitesListPage />)
     
-    const registerBtn = screen.getByRole('button', { name: /Register Target/i })
+    const registerBtn = screen.getByRole('button', { name: /Add Target Website/i })
     fireEvent.click(registerBtn)
 
-    expect(screen.getByText('Register New Target Website')).toBeInTheDocument()
-    expect(screen.getByText(/Restricted Target Policy \(SSRF Prevention\)/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Website Name/i)).toBeInTheDocument()
+    expect(screen.getByText('Register Target Website')).toBeInTheDocument()
+    expect(screen.getByText(/SSRF prevention/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Friendly Target Name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Target URL/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Verification Method/i)).toBeInTheDocument()
+    expect(screen.getByText(/Initial Ownership Verification Method/i)).toBeInTheDocument()
   })
 })
 
@@ -59,8 +59,8 @@ describe('AdminWebsitesPage (Phase 4)', () => {
   it('renders admin target directory and audit notice', async () => {
     renderWithProviders(<AdminWebsitesPage />)
     
-    expect(screen.getByText('Target Websites Directory')).toBeInTheDocument()
-    expect(screen.getByText(/Audit and manage all registered client target domains/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/Search target URL or client email/i)).toBeInTheDocument()
+    expect(screen.getByText(/Registered Website Targets Directory/i)).toBeInTheDocument()
+    expect(screen.getByText(/Global view of all client registered targets/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Search targets by domain, name, or owner ID/i)).toBeInTheDocument()
   })
 })
