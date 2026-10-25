@@ -9,9 +9,12 @@ services:
     rootDir: backend
     buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
     plan: free
     autoDeploy: true
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: APP_ENV
         value: production
       - key: APP_NAME
@@ -23,7 +26,7 @@ services:
       - key: LOG_LEVEL
         value: INFO
       - key: CORS_ORIGINS
-        value: https://patchura-frontend.onrender.com,http://localhost:5173,http://localhost:3000
+        value: https://patchura-frontend.onrender.com
       - key: USE_SQLITE
         value: "true"
       - key: SQLITE_PATH
@@ -51,6 +54,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: VITE_API_BASE_URL
         value: https://patchura-backend.onrender.com
       - key: VITE_APP_NAME

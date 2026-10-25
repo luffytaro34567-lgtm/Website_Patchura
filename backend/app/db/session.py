@@ -62,18 +62,17 @@ def reset_engine():
 
 
 async def init_db() -> None:
-    """Verify the database connection and initialize tables when using SQLite fallback."""
+    """Verify the database connection and initialize tables."""
     try:
         engine = get_engine()
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("Database connection verified")
 
-        # Auto-create tables in SQLite fallback mode or test mode
-        if "sqlite" in settings.effective_database_url:
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-            logger.info("SQLite schema initialized")
+        # Auto-create tables if they do not exist (idempotent, safe for both SQLite and PostgreSQL)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database schema verified")
     except Exception as exc:
         logger.warning("Database connection failed at startup", error=str(exc))
 

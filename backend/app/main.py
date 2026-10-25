@@ -109,7 +109,8 @@ def create_application() -> FastAPI:
 
     # ── Routes ───────────────────────────────────────────────────────────────
     app.include_router(root.router)
-    app.include_router(health.router, prefix="/api")
+    app.include_router(health.router)  # /health for Render health checks
+    app.include_router(health.router, prefix="/api")  # /api/health for API clients
     app.include_router(scanner.router, prefix="/api")
     app.include_router(auth.router, prefix="/api")
     app.include_router(admin.router, prefix="/api")

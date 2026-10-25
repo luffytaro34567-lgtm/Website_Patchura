@@ -170,7 +170,13 @@ class Settings(BaseSettings):
         """Return the database URL, substituting SQLite if USE_SQLITE is set."""
         if self.USE_SQLITE:
             return f"sqlite+aiosqlite:///{self.SQLITE_PATH}"
-        return self.DATABASE_URL
+        url = self.DATABASE_URL
+        # Normalize Render/Heroku postgres URLs for asyncpg driver
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
 
 
 settings = Settings()
