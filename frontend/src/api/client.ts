@@ -1,11 +1,48 @@
 /**
- * Axios-based API client configured with the backend base URL.
- * Automatically injects the bearer authentication token if present.
+ * PATCHORA — Centralized Axios API Client
+ *
+ * Configured with normalized base URL resolution, bearer token injection,
+ * and standard error response parsing.
  */
 import axios from 'axios'
 
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
-const BASE_URL = rawBaseUrl.replace(/\/+$/, '')
+export const PRODUCTION_API_BASE_URL = 'https://patchura-backend.onrender.com'
+
+/**
+ * Normalizes an API base URL by:
+ * - Trimming whitespace
+ * - Removing trailing slashes
+ * - Stripping a redundant trailing '/api' prefix (since individual route paths declare '/api/...')
+ */
+export function normalizeApiBaseUrl(rawUrl?: string | null): string {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return ''
+  }
+  let cleaned = rawUrl.trim().replace(/\/+$/, '')
+  if (cleaned.endsWith('/api')) {
+    cleaned = cleaned.slice(0, -4).replace(/\/+$/, '')
+  }
+  return cleaned
+}
+
+/**
+ * Resolves the active API base URL:
+ * 1. Explicit VITE_API_BASE_URL (if non-empty)
+ * 2. If running in production (import.meta.env.PROD), falls back to PRODUCTION_API_BASE_URL
+ * 3. In development (import.meta.env.DEV), defaults to '' (to utilize Vite's /api proxy)
+ */
+export function resolveApiBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_BASE_URL
+  if (typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    return normalizeApiBaseUrl(envUrl)
+  }
+  if (import.meta.env.PROD) {
+    return PRODUCTION_API_BASE_URL
+  }
+  return ''
+}
+
+export const BASE_URL = resolveApiBaseUrl()
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -21,15 +58,28 @@ export function setApiAccessToken(token: string | null) {
   currentAccessToken = token
 }
 
-// Request interceptor — inject Bearer token
+export function getApiAccessToken(): string | null {
+  return currentAccessToken
+}
+
+// Request interceptor — normalize endpoint path and inject Bearer token
 apiClient.interceptors.request.use(config => {
+  // Prevent duplicate slashes and duplicate /api/api prefixes
+  if (config.url) {
+    let cleanUrl = config.url.replace(/\/{2,}/g, '/')
+    if (cleanUrl.startsWith('/api/api/')) {
+      cleanUrl = cleanUrl.replace(/^\/api\/api\//, '/api/')
+    }
+    config.url = cleanUrl
+  }
+
   if (currentAccessToken && config.headers) {
     config.headers.Authorization = `Bearer ${currentAccessToken}`
   }
   return config
 })
 
-// Response interceptor — normalise errors
+// Response interceptor — normalize errors
 apiClient.interceptors.response.use(
   response => response,
   error => {

@@ -22,7 +22,7 @@ describe('LoginPage', () => {
   it('renders login form with inputs and sign in button', () => {
     renderWithProviders(<LoginPage />)
     expect(screen.getByLabelText(/Username or Email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Password/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Password$/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument()
   })
 
