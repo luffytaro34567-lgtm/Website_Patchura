@@ -148,3 +148,5 @@ dist
 *.db
 *.sqlite
 *.sqlite3
+*.pyc
+**/*.pyc

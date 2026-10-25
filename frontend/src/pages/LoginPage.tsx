@@ -6,9 +6,19 @@ import { useAuth } from '@/context/AuthContext'
 import { recoverPassword, resetPasswordWithToken } from '@/api/auth'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, isAuthenticated, isAdmin } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Redirect if user is already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const fromPath = (location.state as any)?.from?.pathname
+      const defaultTarget = isAdmin ? '/admin/dashboard' : '/dashboard'
+      const target = fromPath && fromPath !== '/login' ? fromPath : defaultTarget
+      navigate(target, { replace: true })
+    }
+  }, [isAuthenticated, isAdmin, navigate, location.state])
 
   const [form, setForm] = useState({ login: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -83,7 +93,9 @@ export function LoginPage() {
     try {
       setIsSubmitting(true)
       const loggedUser = await login(form)
-      const target = (location.state as any)?.from?.pathname || (loggedUser.role === 'admin' ? '/admin/dashboard' : '/dashboard')
+      const fromPath = (location.state as any)?.from?.pathname
+      const defaultTarget = loggedUser.role === 'admin' ? '/admin/dashboard' : '/dashboard'
+      const target = fromPath && fromPath !== '/login' ? fromPath : defaultTarget
       navigate(target, { replace: true })
     } catch (err: any) {
       setError(err?.userMessage || 'Invalid credentials or account inactive.')

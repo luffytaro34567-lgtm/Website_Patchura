@@ -49,7 +49,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15_000,
+  timeout: 30_000, // 30s to accommodate Render free-tier cold starts
 })
 
 let currentAccessToken: string | null = null
@@ -79,7 +79,7 @@ apiClient.interceptors.request.use(config => {
   return config
 })
 
-// Response interceptor — normalize errors
+// Response interceptor — normalize errors with clear messages for network & cold starts
 apiClient.interceptors.response.use(
   response => response,
   error => {
@@ -90,6 +90,14 @@ apiClient.interceptors.response.use(
       message = error.response.data.detail
     } else if (Array.isArray(error?.response?.data?.detail)) {
       message = error.response.data.detail.map((d: any) => d.msg || d.message).join(', ')
+    } else if (error?.code === 'ECONNABORTED' || (error?.message && error.message.toLowerCase().includes('timeout'))) {
+      message = 'Connection timed out. The server may be waking up, please try again in a moment.'
+    } else if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+      message = 'Unable to connect to server. The backend may be starting up or sleeping on Render. Please retry shortly.'
+    } else if (error?.response?.status === 429) {
+      message = 'Too many requests. Please wait a moment before trying again.'
+    } else if (error?.response?.status >= 500) {
+      message = 'Service temporarily unavailable. Please try again shortly.'
     } else if (error?.message) {
       message = error.message
     }

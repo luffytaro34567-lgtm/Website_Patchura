@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -32,16 +32,16 @@ class AuthService:
         Registers a new Client account.
         Public registration can NEVER assign the Admin role.
         """
-        # Check duplicate username
-        res = await db.execute(select(User).where(User.username == payload.username))
+        # Check duplicate username (case-insensitive)
+        res = await db.execute(select(User).where(func.lower(User.username) == payload.username.lower()))
         if res.scalar_one_or_none() is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Username is already registered. Please choose another.",
             )
 
-        # Check duplicate email
-        res = await db.execute(select(User).where(User.email == payload.email))
+        # Check duplicate email (case-insensitive)
+        res = await db.execute(select(User).where(func.lower(User.email) == payload.email.lower()))
         if res.scalar_one_or_none() is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -92,12 +92,12 @@ class AuthService:
         """
         normalized_login = login.strip().lower()
 
-        # Query user by username or email
+        # Query user by username or email (case-insensitive)
         res = await db.execute(
             select(User).where(
                 or_(
-                    User.username == normalized_login,
-                    User.email == normalized_login,
+                    func.lower(User.username) == normalized_login,
+                    func.lower(User.email) == normalized_login,
                 )
             )
         )
@@ -127,29 +127,33 @@ class AuthService:
 
         now = datetime.now(timezone.utc)
 
-        # Check account lockout
-        if user.locked_until and user.locked_until > now:
-            logger.warning("Authentication blocked: account locked", user_id=user.id)
-            await ActivityService.log_event(
-                db=db,
-                event_category="account_security",
-                event_name="user_login_blocked_locked",
-                actor_type="user",
-                actor_id=user.id,
-                actor_email=user.email,
-                target_type="user",
-                target_id=user.id,
-                target_identifier=user.username,
-                outcome="blocked",
-                severity="warning",
-                source_module="auth",
-                metadata={"locked_until": user.locked_until.isoformat()},
-                commit=True,
-            )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account is temporarily locked due to repeated failed login attempts. Please try again later.",
-            )
+        # Check account lockout (ensure timezone awareness for cross-database compatibility)
+        locked_until = user.locked_until
+        if locked_until is not None:
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            if locked_until > now:
+                logger.warning("Authentication blocked: account locked", user_id=user.id)
+                await ActivityService.log_event(
+                    db=db,
+                    event_category="account_security",
+                    event_name="user_login_blocked_locked",
+                    actor_type="user",
+                    actor_id=user.id,
+                    actor_email=user.email,
+                    target_type="user",
+                    target_id=user.id,
+                    target_identifier=user.username,
+                    outcome="blocked",
+                    severity="warning",
+                    source_module="auth",
+                    metadata={"locked_until": locked_until.isoformat()},
+                    commit=True,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Account is temporarily locked due to repeated failed login attempts. Please try again later.",
+                )
 
         if not verify_password(password, user.hashed_password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
@@ -379,7 +383,7 @@ class AuthService:
         Timing-safe against email enumeration.
         """
         clean_email = email.strip().lower()
-        res = await db.execute(select(User).where(User.email == clean_email))
+        res = await db.execute(select(User).where(func.lower(User.email) == clean_email))
         user = res.scalar_one_or_none()
         if not user:
             pwd_context.verify("DummyPass123!", DUMMY_HASH)

@@ -7,6 +7,7 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.config import settings
 from app.db.session import Base, get_engine, reset_engine
+from app.security.rate_limiter import limiter
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -28,6 +29,14 @@ async def init_test_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+
+
+@pytest.fixture(autouse=True)
+async def reset_rate_limiter():
+    """Reset the in-memory rate limiter between tests."""
+    await limiter.reset()
+    yield
+    await limiter.reset()
 
 
 @pytest.fixture
