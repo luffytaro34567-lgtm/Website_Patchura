@@ -36,7 +36,7 @@ export function ClientOverviewPage() {
               Client Workspace Overview
             </h1>
             <span className="text-xs font-mono uppercase bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded border border-primary-200 dark:border-primary-800">
-              Role: Client
+              Role: {user?.role === 'admin' ? 'Administrator' : 'Client'}
             </span>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -147,7 +147,7 @@ export function ClientOverviewPage() {
           <div>
             <span className="text-slate-400 block mb-0.5">Assigned Role</span>
             <span className="font-mono font-semibold text-primary-600 dark:text-primary-400">
-              ROLE_CLIENT
+              {user?.role === 'admin' ? 'ROLE_ADMIN' : 'ROLE_CLIENT'}
             </span>
           </div>
           <div>

